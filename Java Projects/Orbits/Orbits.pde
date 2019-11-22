@@ -9,7 +9,8 @@ Moon moons [];
 
 void setup() {
   fullScreen(P3D);
-  smooth(2);
+  background(0);
+  smooth(0);
 
   texture = loadImage("saturn.jpg");
   moonText = loadImage("moon.jpg");
@@ -17,8 +18,8 @@ void setup() {
   cam = new PeasyCam (this, 2000);
   cam.rotateX(-PI/4);
 
-  rocks = new Asteroid [200];
-  moons = new Moon [1];
+  rocks = new Asteroid [100];
+  moons = new Moon [3];
 
   for (int i = 0; i < rocks.length; i++) {
     float rho = random(900, 1100);
@@ -56,7 +57,7 @@ void draw() {
     m.show();
   }
 
-  textSize(50);
+  textSize(50); //<>//
   text("FPS: "+(int)frameRate, 1250, 1250, 0);
   //drawText();
 }

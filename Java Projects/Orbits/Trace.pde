@@ -9,10 +9,8 @@ class Trace {
     Z = endZ;
   }
   void show() {
-    pushMatrix();
     stroke(255);
     strokeWeight(3);
     line(x, y, z, X, Y, Z);
-    popMatrix();
   }
 }
