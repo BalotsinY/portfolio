@@ -1,22 +1,19 @@
 rocks = [];
 moons = [];
 
-var rotX, rotY;
+var easycam;
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL)
   background(0);
   smooth(0);
 
-  texture = loadImage("saturn.jpg");
+  planetTexture = loadImage("saturn.jpg");
   moonText = loadImage("moon.jpg");
 
-  rotateX(PI / 4);
-  rotX = 0;
-  rotY = 0;
+  setAttributes('antialias', true);
 
-  rocks = new Asteroid[100];
-  moons = new Moon[3];
+  easycam = createEasyCam();
 
   for (var i = 0; i < 100; i++) {
     var rho = random(900, 1100);
@@ -34,13 +31,12 @@ function setup() {
 }
 
 function draw() {
-  rotateX(rotX);
-  rotateY(rotY);
-
+  noStroke();
+  lights();
   lights();
   background(0);
 
-  texture(texture);
+  texture(planetTexture);
   sphere(300);
 
   for (var a of rocks) {
@@ -52,14 +48,6 @@ function draw() {
     m.move();
     m.show();
   }
-
-  textSize(50);
-  text("FPS: " + frameRate(), 1250, 1250, 0);
-}
-
-function mouseDragged() {
-  rotY += (mouseX - pmouseX) * 0.01;
-  rotX -= (mouseY - pmouseY) * 0.01;
 }
 
 class Asteroid {
@@ -68,11 +56,11 @@ class Asteroid {
     this.y = yPos;
     this.z = zPos;
     this.size = s;
-    this.rho = getRho(x, y, z);
-    this.phi = getPhi(x, y, z);
-    this.theta = getTheta(x, y);
+    this.rho = getRho(this.x, this.y, this.z);
+    this.phi = getPhi(this.x, this.y, this.z);
+    this.theta = getTheta(this.x, this.y);
     this.speed = random(.02, .03);
-    this.t = theta;
+    this.t = this.theta;
   }
   show() {
     fill(255);
@@ -80,53 +68,55 @@ class Asteroid {
     sphere(this.size);
   }
   move() {
-    theta = t;
-    x = getX(rho, theta, phi);
-    y = getY(rho, theta, phi);
-    z = getZ(rho, phi);
-    t += speed;
+    this.theta = this.t;
+    this.x = getX(this.rho, this.theta, this.phi);
+    this.y = getY(this.rho, this.theta, this.phi);
+    this.z = getZ(this.rho, this.phi);
+    this.t += this.speed;
   }
 }
-class Moon extends Asteroid {
+class Moon {
   constructor(xPos, yPos, zPos, s) {
-    super(xPos, yPos, zPos, s);
+    this.x = xPos;
+    this.y = yPos;
+    this.z = zPos;
+    this.size = s;
     this.speed = random(.009, .015);
     this.scalar = random(-PI / 3, PI / 3);
     this.minRad = getRho(xPos, yPos, zPos);
-    this.endX = x;
-    this.endY = y;
-    this.endZ = z;
-    this.trace = [];
+    this.endX = this.x;
+    this.endY = this.y;
+    this.endZ = this.z;
     this.counter = 0;
     this.lines = [];
+    this.t = 0;
   }
   move() {
-    this.theta = t;
-    this.phi = scalar * cos(t + scalar) / (PI) + PI / 2;
-    rho = minRad + 250 * sin(t);
-    if (counter > 3) {
-      endX = getX(rho, theta, phi);
-      endY = getY(rho, theta, phi);
-      endZ = getZ(rho, phi);
-      lines.push(new Trace(x, y, z, endX, endY, endZ));
-      lines.remove(0);
-      counter = 0;
+    this.theta = this.t;
+    this.phi = this.scalar * cos(this.t + this.scalar) / (PI) + PI / 2;
+    this.rho = this.minRad + 250 * sin(this.t);
+    if (this.counter > 3) {
+      this.endX = getX(this.rho, this.theta, this.phi);
+      this.endY = getY(this.rho, this.theta, this.phi);
+      this.endZ = getZ(this.rho, this.phi);
+      this.lines.push(new Trace(this.x, this.y, this.z, this.endX, this.endY, this.endZ));
+      this.lines.splice(0, 1);
+      this.counter = 0;
     }
-    x = getX(rho, theta, phi);
-    y = getY(rho, theta, phi);
-    z = getZ(rho, phi);
-    t += speed;
-    if (t == 2 * PI)
-      t = 0;
-    counter++;
+    this.x = getX(this.rho, this.theta, this.phi);
+    this.y = getY(this.rho, this.theta, this.phi);
+    this.z = getZ(this.rho, this.phi);
+    this.t += this.speed;
+    if (this.t == 2 * PI)
+      this.t = 0;
+    this.counter++;
   }
   show() {
-    translate(x, y, z);
+    translate(this.x, this.y, this.z);
     texture(moonText);
     sphere(50);
-    rotateZ(1);
 
-    for (var t of lines) {
+    for (var t of this.lines) {
       t.show();
     }
   }
@@ -146,22 +136,27 @@ class Trace {
     line(this.startX, this.startY, this.startZ, this.endX, this.endY.this.endZ);
   }
 }
+
 function getTheta(x, y) {
-  return atan2(this.y, this.x);
+  return atan2(y, x);
 }
 
 function getPhi(x, y, z) {
-  return atan2(sqrt(this.x * this.x + this.y * this.y), this.z);
+  return atan2(sqrt(x * x + y * y), z);
 }
+
 function getRho(x, y, z) {
-  return sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+  return sqrt(x * x + y * y + z * z);
 }
+
 function getX(rho, theta, phi) {
-  return this.rho * cos(this.theta) * sin(this.phi);
+  return rho * cos(theta) * sin(phi);
 }
+
 function getY(rho, theta, phi) {
-  return this.rho * sin(this.theta) * sin(this.phi);
+  return rho * sin(theta) * sin(phi);
 }
+
 function getZ(rho, phi) {
-  return this.rho * cos(this.phi);
+  return rho * cos(phi);
 }
