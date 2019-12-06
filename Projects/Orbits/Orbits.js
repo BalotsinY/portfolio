@@ -33,7 +33,6 @@ function setup() {
 function draw() {
   noStroke();
   lights();
-  lights();
   background(0);
 
   texture(planetTexture);
